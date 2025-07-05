@@ -5,23 +5,50 @@ const jwt = require("jsonwebtoken");
 exports.register = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
-    const existingUser = await User.findOne({ email });
-    if (existingUser)
-      return res.status(400).json({ msg: "User already exists" });
 
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ message: "An account with this email already exists." });
+    }
+
+    // Check if admin already exists
+    if (role === "admin") {
+      const adminExists = await User.exists({ role: "admin" });
+      if (adminExists) {
+        return res.status(403).json({
+          message:
+            "Admin registration is disabled. As an admin already exists Please register as a user.",
+        });
+      }
+    }
+
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({
+
+    // Create new user with requested role (admin allowed only once)
+    const newUser = new User({
       name,
       email,
       password: hashedPassword,
-      role,
+      role: role === "admin" ? "admin" : "user",
     });
-    res.status(201).json({ msg: "Registered successfully" });
+
+    await newUser.save();
+
+    res.status(201).json({
+      message: "Registration successful.",
+      role: newUser.role,
+    });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Registration error:", err);
+    res.status(500).json({
+      message: "Server error during registration. Please try again later.",
+    });
   }
 };
-
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -39,12 +66,10 @@ exports.login = async (req, res) => {
       }
     );
 
-    res
-      .status(200)
-      .json({
-        token,
-        user: { id: user._id, name: user.name, role: user.role },
-      });
+    res.status(200).json({
+      token,
+      user: { id: user._id, name: user.name, role: user.role },
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
