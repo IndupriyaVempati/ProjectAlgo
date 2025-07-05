@@ -1,0 +1,110 @@
+### Register (User)
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "user1",
+  "email": "user1@example.com",
+  "password": "user1",
+  "role": "user"
+}
+
+### Register (Admin)
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "admin",
+  "email": "admin@example.com",
+  "password": "admin",
+  "role": "admin"
+}
+
+### Login (User)
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "user1@example.com",
+  "password": "user1"
+}
+
+### Login (Admin)
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "admin"
+}
+
+### Get All Problems (Public)
+GET http://localhost:5000/api/problems
+
+### Add Problem (Admin Only)
+POST http://localhost:5000/api/problems
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NjkzMjNjOGEzMDljOTFkMTliMDE5OSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1MTcyNDk0MywiZXhwIjoxNzUxODExMzQzfQ.083hxHmx4yuE9KCDZyUn1cbxF-DXeU-b454WBWdZS8Q
+
+{
+  "title": "Two Sum",
+  "companyTags": ["Amazon", "Google"],
+  "difficulty": "Easy",
+  "topics": ["Arrays", "HashMap"],
+  "description": "Find two numbers that add up to a target.",
+  "constraints": "1 <= nums.length <= 10^4",
+  "hints": ["Use a hashmap"],
+  "sampleInputs": ["[2,7,11,15], 9"],
+  "sampleOutputs": ["[0,1]"]
+}
+
+### Get Problem by ID
+GET http://localhost:5000/api/problems/686933aa8a309c91d19b01ac
+
+### Update Problem (Admin)
+PUT http://localhost:5000/api/problems/686933aa8a309c91d19b01ac
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NjkzMjNjOGEzMDljOTFkMTliMDE5OSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1MTcyNDY2OCwiZXhwIjoxNzUxODExMDY4fQ.Q5oUulnb5Sn2hRb7BpCXt8eFDCWadvbX0zeB-yiNy-o
+
+{
+  "difficulty": "Medium"
+}
+
+### Delete Problem (Admin)
+DELETE http://localhost:5000/api/problems/686932b98a309c91d19b019f
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NjkzMjNjOGEzMDljOTFkMTliMDE5OSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1MTcyNDY2OCwiZXhwIjoxNzUxODExMDY4fQ.Q5oUulnb5Sn2hRb7BpCXt8eFDCWadvbX0zeB-yiNy-o
+
+### Submit Code (User)
+POST http://localhost:5000/api/submissions/submit
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NjkzMjI3OGEzMDljOTFkMTliMDE5NiIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzUxNzI1MDY5LCJleHAiOjE3NTE4MTE0Njl9.0A629OCkVFdVwAksSz5SBI5AGkK3DlCOsbCQmJlwvs8
+
+{
+  "userId": "686932278a309c91d19b0196",
+  "problemId": "686933aa8a309c91d19b01ac",
+  "code": "print('Hello World')",
+  "language": "Python"
+}
+
+### Get All Submissions of a User
+GET http://localhost:5000/api/submissions/user/686932278a309c91d19b0196
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NjkzMjI3OGEzMDljOTFkMTliMDE5NiIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzUxNzI1MDY5LCJleHAiOjE3NTE4MTE0Njl9.0A629OCkVFdVwAksSz5SBI5AGkK3DlCOsbCQmJlwvs8
+
+### Get Specific Submission
+GET http://localhost:5000/api/submissions/6869346f8a309c91d19b01b2
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NjkzMjI3OGEzMDljOTFkMTliMDE5NiIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzUxNzI1MDY5LCJleHAiOjE3NTE4MTE0Njl9.0A629OCkVFdVwAksSz5SBI5AGkK3DlCOsbCQmJlwvs8
+
+### Add Test Case (Admin)
+POST http://localhost:5000/api/testcases
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NjkzMjNjOGEzMDljOTFkMTliMDE5OSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1MTcyNTM2OSwiZXhwIjoxNzUxODExNzY5fQ.skfKAAL6UPlqf8zEWE22JMuGxm4MFP6ShcI9gqFZToc
+
+{
+  "problemId": "686933aa8a309c91d19b01ac",
+  "input": "5 5",
+  "output": "10"
+}
+
+### Get Test Cases by Problem ID
+GET http://localhost:5000/api/testcases/686933aa8a309c91d19b01ac
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NjkzMjNjOGEzMDljOTFkMTliMDE5OSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc1MTcyNTM2OSwiZXhwIjoxNzUxODExNzY5fQ.skfKAAL6UPlqf8zEWE22JMuGxm4MFP6ShcI9gqFZToc
