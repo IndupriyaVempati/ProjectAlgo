@@ -1,6 +1,7 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { BrainCircuit, Rocket, Code2, TerminalSquare, Trophy, Sparkles } from "lucide-react";
+//import index.css
 
 const Home = () => {
   return (

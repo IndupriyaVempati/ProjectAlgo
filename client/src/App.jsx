@@ -6,66 +6,29 @@ import Rootlayout from "./layouts/Rootlayout";
 
 // Pages
 import Home from "./pages/Home";
-// import Login from "./pages/Login";
-// import Register from "./pages/Register";
-// import Problems from "./pages/Problems";
-// import ProblemDetail from "./pages/ProblemDetail";
-// import Profile from "./pages/Profile";
-// import Submissions from "./pages/Submissions";
-// import AdminPanel from "./pages/AdminPanel";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import AdminWelcome from './pages/AdminWelcome';
+import AdminProblems from './pages/AdminProblems';
+import AdminUsers from './pages/AdminUsers';
+import UserWelcome from './pages/UserWelcome';
+import UserProblems from './pages/UserProblems';
+import Profile from './pages/Profile';
 
-// Auth-protected Routes
-// import ProtectedRoute from "./routes/ProtectedRoute";
-// import AdminRoute from "./routes/AdminRoute";
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<Rootlayout />}>
       <Route index element={<Home />} />
-        {/* <Route index element={<Home />} />
-        <Route path="login" element={<Login />} />
-        <Route path="register" element={<Register />} />
-        <Route
-          path="problems"
-          element={
-            <ProtectedRoute>
-              <Problems />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="problems/:id"
-          element={
-            <ProtectedRoute>
-              <ProblemDetail />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="submissions"
-          element={
-            <ProtectedRoute>
-              <Submissions />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="profile"
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="admin"
-          element={
-            <AdminRoute>
-              <AdminPanel />
-            </AdminRoute>
-          }
-        /> */}
+      <Route path="register" element={<Register />} />
+      <Route path="login" element={<Login />} />
+      <Route path="user-welcome" element={<UserWelcome />} />
+      <Route path="admin-welcome" element={<AdminWelcome />} />
+      <Route path="api/problems" element={<AdminProblems />} />
+      <Route path="admin/users" element={<AdminUsers />} />
+      <Route path="profile" element={<Profile />} />
+      {/* Add more routes as needed */}
       </Route>
     </Routes>
   );

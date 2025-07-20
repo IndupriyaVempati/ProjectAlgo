@@ -59,7 +59,7 @@ exports.login = async (req, res) => {
     if (!match) return res.status(400).json({ msg: "Invalid credentials" });
 
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      { id: user._id, role: user.role, name: user.name, email: user.email },
       process.env.JWT_SECRET,
       {
         expiresIn: "1d",
@@ -68,9 +68,34 @@ exports.login = async (req, res) => {
 
     res.status(200).json({
       token,
-      user: { id: user._id, name: user.name, role: user.role },
+      user: {
+        id: user._id,
+        name: user.name,
+        role: user.role,
+        email: user.email,
+      },
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+};
+exports.getUsers = async (req, res) => {
+  try {
+    const users = await User.find({}, "-password"); // Exclude password field
+    res.status(200).json(users);
+  } catch (err) {
+    console.error("Error fetching users:", err);
+    res.status(500).json({ message: "Server error while fetching users." });
+  }
+};
+
+// authController.js
+exports.getProfile = (req, res) => {
+  try {
+    const { id, name, email, role } = req.user;
+    res.status(200).json({ id, name, email, role });
+  } catch (error) {
+    console.error("Error fetching profile:", error);
+    res.status(500).json({ message: "Server error fetching profile" });
   }
 };
