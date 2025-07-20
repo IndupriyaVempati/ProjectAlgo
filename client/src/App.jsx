@@ -14,6 +14,10 @@ import AdminUsers from './pages/AdminUsers';
 import UserWelcome from './pages/UserWelcome';
 import UserProblems from './pages/UserProblems';
 import Profile from './pages/Profile';
+import AddProblem from "./pages/AddProblem";
+import EditProblem from "./pages/EditProblem";
+import Submissions from "./pages/Submissions";
+import ProblemSolve from "./pages/ProblemSolve";
 
 
 function App() {
@@ -26,8 +30,13 @@ function App() {
       <Route path="user-welcome" element={<UserWelcome />} />
       <Route path="admin-welcome" element={<AdminWelcome />} />
       <Route path="api/problems" element={<AdminProblems />} />
+      <Route path="admin/problems/add" element={<AddProblem />} />
+      <Route path="admin/problems/edit/:id" element={<EditProblem />} />
       <Route path="admin/users" element={<AdminUsers />} />
       <Route path="profile" element={<Profile />} />
+      <Route path="problems" element={<UserProblems />} />
+      <Route path="problems/:id" element={<ProblemSolve />} />
+      <Route path="submissions" element={<Submissions />} />
       {/* Add more routes as needed */}
       </Route>
     </Routes>
