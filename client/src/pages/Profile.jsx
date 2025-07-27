@@ -4,6 +4,8 @@ import axios from "axios";
 const Profile = () => {
   const [user, setUser] = useState({});
   const [count, setCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [solvedCount, setSolvedCount] = useState(0);
 
   const api = axios.create({
     baseURL: import.meta.env.VITE_REACT_URL,
@@ -20,12 +22,14 @@ const Profile = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUser(res.data);
+      return res.data;
     } catch (err) {
       console.error("Error fetching profile:", err);
+      return null;
     }
   };
 
-  const fetchCounts = async () => {
+  const fetchCounts = async (userId) => {
     try {
       if (role === "admin") {
         const res = await api.get("/api/problems", {
@@ -33,21 +37,46 @@ const Profile = () => {
         });
         setCount(res.data.length);
       } else {
-        const userId = JSON.parse(atob(token.split(".")[1])).id;
+        // Use the userId parameter instead of user._id from state
         const res = await api.get(`/api/submissions/user/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setCount(res.data.length);
+        setCount(res.data.pagination?.total || res.data.total || res.data.length || 0);
       }
     } catch (err) {
       console.error("Error fetching count:", err);
+      setCount(0);
+    }
+  };
+
+  const fetchSolvedCount = async (userId) => {
+    try {
+      const res = await api.get(`/api/submissions/user/${userId}/solved`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setSolvedCount(res.data.count || 0);
+    } catch (err) {
+      setSolvedCount(0);
     }
   };
 
   useEffect(() => {
-    fetchUserProfile();
-    fetchCounts();
-  }, []);
+    const loadData = async () => {
+      setLoading(true);
+      const userData = await fetchUserProfile();
+      if (userData && userData._id) {
+        await fetchCounts(userData._id);
+        if (role !== "admin") {
+          await fetchSolvedCount(userData._id);
+        }
+      }
+      setLoading(false);
+    };
+    
+    if (token) {
+      loadData();
+    }
+  }, [token]);
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
@@ -63,14 +92,21 @@ const Profile = () => {
           <span className="font-semibold">Email:</span> {email}
         </p>
 
-        {role === "admin" ? (
+        {loading ? (
+          <p className="text-gray-500 text-lg">Loading...</p>
+        ) : role === "admin" ? (
           <p className="text-indigo-600 text-lg">
             🧩 Problems Added: <span className="font-bold">{count}</span>
           </p>
         ) : (
-          <p className="text-indigo-600 text-lg">
-            🧠 Submissions Made: <span className="font-bold">{count}</span>
-          </p>
+          <>
+            <p className="text-indigo-600 text-lg">
+              🧠 Submissions Made: <span className="font-bold">{count}</span>
+            </p>
+            <p className="text-green-600 text-lg mt-2">
+              ✅ Problems Solved: <span className="font-bold">{solvedCount}</span>
+            </p>
+          </>
         )}
       </div>
     </div>

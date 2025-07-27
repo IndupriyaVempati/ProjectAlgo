@@ -9,6 +9,7 @@ import 'prismjs/components/prism-cpp';
 import 'prismjs/components/prism-java';
 import 'prismjs/components/prism-python';
 import 'prismjs/themes/prism.css';
+import { toast } from 'react-toastify';
 
 const LANGUAGES = [
   { label: "Python", value: "python" },
@@ -31,6 +32,8 @@ const languageToPrism = {
   java: prismLanguages.java || prismLanguages.clike,
 };
 
+// Keep all your imports the same...
+
 const ProblemSolve = () => {
   const { id } = useParams();
   const [problem, setProblem] = useState(null);
@@ -41,6 +44,9 @@ const ProblemSolve = () => {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lastSubmission, setLastSubmission] = useState(null);
+  const [submissions, setSubmissions] = useState([]);
 
   useEffect(() => {
     const fetchProblem = async () => {
@@ -51,6 +57,7 @@ const ProblemSolve = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setProblem(res.data);
+        fetchUserSubmissions();
       } catch (err) {
         setError("Failed to fetch problem");
       }
@@ -69,11 +76,7 @@ const ProblemSolve = () => {
     setOutput("");
     try {
       const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/run";
-      const payload = {
-        language,
-        code,
-        input,
-      };
+      const payload = { language, code, input };
       const { data } = await axios.post(backendUrl, payload);
       setOutput(data.output || data.error || "No output");
     } catch (error) {
@@ -89,107 +92,195 @@ const ProblemSolve = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-slate-100 flex flex-col md:flex-row">
-      {/* Problem Details */}
-      <div className="w-full md:w-1/2 bg-white p-8 border-r border-slate-200 min-h-[400px] flex flex-col">
-        {loading ? (
-          <div className="text-slate-500">Loading...</div>
-        ) : error ? (
-          <div className="text-red-500">{error}</div>
-        ) : problem ? (
-          <>
-            <h1 className="text-2xl font-bold text-indigo-700 mb-2">{problem.title}</h1>
-            <div className="flex flex-wrap gap-2 mb-2">
-              <span className="px-2 py-1 rounded bg-indigo-50 text-indigo-600 font-semibold text-xs">{problem.difficulty}</span>
-              {problem.topics && problem.topics.map((t, i) => (
-                <span key={i} className="px-2 py-1 rounded bg-slate-100 text-slate-500 text-xs">{t}</span>
-              ))}
-              {problem.companyTags && problem.companyTags.map((c, i) => (
-                <span key={i} className="px-2 py-1 rounded bg-emerald-50 text-emerald-600 text-xs">{c}</span>
-              ))}
-            </div>
-            <div className="mb-4 text-slate-700 whitespace-pre-line text-sm">{problem.description}</div>
-            {problem.constraints && <div className="mb-2 text-xs text-slate-500"><strong>Constraints:</strong> {problem.constraints}</div>}
-            {problem.hints && problem.hints.length > 0 && <div className="mb-2 text-xs text-slate-500"><strong>Hints:</strong> {problem.hints.join(", ")}</div>}
-            {problem.sampleInputs && problem.sampleInputs.length > 0 && (
-              <div className="mb-2 text-xs text-slate-500">
-                <strong>Sample Inputs:</strong>
-                <ul className="list-disc ml-6">
-                  {problem.sampleInputs.map((input, i) => <li key={i}><code>{input}</code></li>)}
-                </ul>
-              </div>
-            )}
-            {problem.sampleOutputs && problem.sampleOutputs.length > 0 && (
-              <div className="mb-2 text-xs text-slate-500">
-                <strong>Sample Outputs:</strong>
-                <ul className="list-disc ml-6">
-                  {problem.sampleOutputs.map((output, i) => <li key={i}><code>{output}</code></li>)}
-                </ul>
-              </div>
-            )}
-          </>
-        ) : null}
+  const handleSubmit = async () => {
+    if (isSubmitting || !code.trim()) return;
+    setIsSubmitting(true);
+    try {
+      const token = localStorage.getItem("token");
+      const user = JSON.parse(localStorage.getItem("user"));
+      const userId = user?._id || user?.id;
+      if (!userId) {
+        setOutput("Error: Please login to submit code");
+        return;
+      }
+      const payload = { userId, problemId: id, code, language };
+      const { data } = await axios.post(`${import.meta.env.VITE_REACT_URL}/api/submissions`, payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (data.success) {
+        setLastSubmission(data.submission);
+        setOutput(`Submission successful! Verdict: ${data.submission.verdict}\nScore: ${data.submission.score}/${data.submission.totalScore}\nPassed: ${data.submission.passedTestCases}/${data.submission.totalTestCases} test cases`);
+        fetchUserSubmissions();
+      } else {
+        setOutput(`Submission failed: ${data.error}`);
+      }
+    } catch (error) {
+      if (error.response) {
+        setOutput(`Submission Error: ${error.response.data.error || 'Server error occurred'}`);
+      } else {
+        setOutput('Error: Could not connect to server.');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const fetchUserSubmissions = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const user = JSON.parse(localStorage.getItem("user"));
+      const userId = user?._id || user?.id;
+      if (!userId) return;
+
+      const { data } = await axios.get(`${import.meta.env.VITE_REACT_URL}/api/submissions/user/${userId}?problemId=${id}&limit=5`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // The backend returns { data: submissions, pagination: {...} }
+      if (data && data.data) {
+        setSubmissions(data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching submissions:", error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-100">
+        <p className="text-gray-500">Loading problem...</p>
       </div>
-      {/* Code Editor + Compiler */}
-      <div className="w-full md:w-1/2 bg-slate-50 p-8 flex flex-col min-h-[400px]">
-        <div className="flex items-center gap-4 mb-4">
-          <label className="font-semibold text-slate-700">Language:</label>
-          <select
-            value={language}
-            onChange={e => setLanguage(e.target.value)}
-            className="px-3 py-2 border border-slate-300 rounded-md bg-white text-slate-700"
-          >
-            {LANGUAGES.map(l => (
-              <option key={l.value} value={l.value}>{l.label}</option>
-            ))}
-          </select>
+    );
+  }
+
+  if (error || !problem) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-100">
+        <div className="bg-red-100 p-4 rounded text-red-600 shadow">{error || "Problem not found."}</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-100 grid grid-cols-1 lg:grid-cols-2 gap-4 p-6">
+      {/* Left Section: Problem Details */}
+      <div className="bg-white p-6 rounded-lg shadow space-y-4">
+        <h1 className="text-2xl font-bold text-indigo-600">{problem.title}</h1>
+        <div className="flex gap-2 flex-wrap">
+          <span className="bg-indigo-100 text-indigo-600 px-2 py-1 text-xs rounded">{problem.difficulty}</span>
+          {problem.topics?.map((tag, idx) => (
+            <span key={idx} className="bg-slate-100 text-slate-600 px-2 py-1 text-xs rounded">{tag}</span>
+          ))}
+          {problem.companyTags?.map((company, idx) => (
+            <span key={idx} className="bg-green-100 text-green-600 px-2 py-1 text-xs rounded">{company}</span>
+          ))}
         </div>
-        <div className="rounded-lg shadow-sm border border-gray-200 overflow-hidden bg-white mb-4" style={{ height: '300px', overflowY: 'auto' }}>
+        <div className="prose max-w-none text-sm whitespace-pre-wrap">{problem.description}</div>
+        {problem.constraints && (
+          <div className="text-xs text-gray-600"><strong>Constraints:</strong> {problem.constraints}</div>
+        )}
+        {problem.hints?.length > 0 && (
+          <div className="text-xs text-gray-600"><strong>Hints:</strong> {problem.hints.join(", ")}</div>
+        )}
+        {problem.sampleInputs?.length > 0 && (
+          <div className="text-xs text-gray-600">
+            <strong>Sample Inputs:</strong>
+            <ul className="list-disc pl-5">{problem.sampleInputs.map((inp, i) => <li key={i}><pre>{inp}</pre></li>)}</ul>
+          </div>
+        )}
+        {problem.sampleOutputs?.length > 0 && (
+          <div className="text-xs text-gray-600">
+            <strong>Sample Outputs:</strong>
+            <ul className="list-disc pl-5">{problem.sampleOutputs.map((out, i) => <li key={i}><pre>{out}</pre></li>)}</ul>
+          </div>
+        )}
+      </div>
+
+      {/* Right Section: Code Editor, Input/Output, Review */}
+      <div className="space-y-4">
+        {/* Code Editor */}
+        <div className="bg-white p-4 rounded-lg shadow">
+          <div className="flex justify-between mb-2">
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              className="border px-2 py-1 rounded text-sm"
+            >
+              {LANGUAGES.map(lang => <option key={lang.value} value={lang.value}>{lang.label}</option>)}
+            </select>
+            <div className="space-x-2">
+              <button
+                onClick={handleRun}
+                disabled={isRunning}
+                className={`px-3 py-1 text-sm rounded ${isRunning ? 'bg-gray-300' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+              >
+                {isRunning ? 'Running...' : 'Run Code'}
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className={`px-3 py-1 text-sm rounded ${isSubmitting ? 'bg-gray-300' : 'bg-green-500 text-white hover:bg-green-600'}`}
+              >
+                {isSubmitting ? 'Submitting...' : 'Submit'}
+              </button>
+            </div>
+          </div>
           <Editor
             value={code}
             onValueChange={setCode}
-            highlight={code => highlight(code, languageToPrism[language] || prismLanguages.clike)}
-            padding={12}
+            highlight={(code) =>
+              highlight(code, languageToPrism[language] || prismLanguages.text, language)
+            }
+            padding={10}
             style={{
-              fontFamily: '"Fira Code", monospace',
+              fontFamily: '"Fira code", "Fira Mono", monospace',
               fontSize: 14,
-              height: '100%',
-              overflowY: 'auto',
-              outline: 'none',
-              backgroundColor: '#f9fafb',
+              minHeight: '300px',
             }}
           />
         </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Program Input</label>
+
+        {/* Input / Output */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <textarea
             value={input}
-            onChange={e => setInput(e.target.value)}
-            rows={4}
-            className="w-full p-3 border border-gray-300 rounded-md text-sm resize-none"
-            placeholder="Enter input (optional)"
+            onChange={(e) => setInput(e.target.value)}
+            className="p-3 rounded shadow text-sm border"
+            placeholder="Input here..."
           />
+          <pre className="bg-gray-100 p-3 rounded shadow text-sm whitespace-pre-wrap">
+            {output || "Run code to see output..."}
+          </pre>
         </div>
-        <button
-          onClick={handleRun}
-          disabled={isRunning}
-          className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-md text-white font-semibold transition ${isRunning ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-500 hover:bg-indigo-600'}`}
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.91 11.672a.375.375 0 0 1 0 .656l-5.6 3.11a.375.375 0 0 1-.56-.327V8.887c0-.285.308-.465.56-.326l5.6 3.11z" />
-          </svg>
-          {isRunning ? 'Running...' : 'Run Code'}
-        </button>
-        <div className="mt-6">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Output</label>
-          <div className="p-3 h-28 bg-gray-100 border border-gray-200 rounded-md overflow-y-auto font-mono text-sm">
-            {output ? output : 'Output will appear here...'}
+
+        {/* Last Submission */}
+        {lastSubmission && (
+          <div className="bg-white p-4 rounded shadow">
+            <h4 className="font-semibold mb-2">Last Submission</h4>
+            <div className="text-sm space-y-1">
+              <div>Status: <span className={`font-semibold ${lastSubmission.verdict === 'Accepted' ? 'text-green-600' : 'text-red-600'}`}>{lastSubmission.verdict}</span></div>
+              <div>Score: {lastSubmission.score}/{lastSubmission.totalScore}</div>
+              <div>Test Cases: {lastSubmission.passedTestCases}/{lastSubmission.totalTestCases}</div>
+            </div>
           </div>
-        </div>
+        )}
+
+{/* Submission History */}
+        {submissions.length > 0 && (
+          <div className="bg-white p-4 rounded shadow">
+            <h4 className="font-semibold mb-2">Submission History</h4>
+            {submissions.map((s, idx) => (
+              <div key={idx} className="text-sm border-b last:border-b-0 py-1">
+                <span className={`font-semibold ${s.verdict === 'Accepted' ? 'text-green-600' : 'text-red-600'}`}>{s.verdict}</span>
+                <span className="ml-2 text-gray-500 text-xs">at {new Date(s.submissionTime).toLocaleString()}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-export default ProblemSolve; 
+export default ProblemSolve;

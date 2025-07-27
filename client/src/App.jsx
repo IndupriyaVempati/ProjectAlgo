@@ -18,6 +18,9 @@ import AddProblem from "./pages/AddProblem";
 import EditProblem from "./pages/EditProblem";
 import Submissions from "./pages/Submissions";
 import ProblemSolve from "./pages/ProblemSolve";
+import AdminTestcases from "./pages/AdminTestcases";
+import SubmissionDetail from "./pages/SubmissionDetail";
+import AdminDashboard from './pages/AdminDashboard';
 
 
 function App() {
@@ -29,6 +32,7 @@ function App() {
       <Route path="login" element={<Login />} />
       <Route path="user-welcome" element={<UserWelcome />} />
       <Route path="admin-welcome" element={<AdminWelcome />} />
+      <Route path="admin-dashboard" element={<AdminDashboard />} />
       <Route path="api/problems" element={<AdminProblems />} />
       <Route path="admin/problems/add" element={<AddProblem />} />
       <Route path="admin/problems/edit/:id" element={<EditProblem />} />
@@ -37,6 +41,8 @@ function App() {
       <Route path="problems" element={<UserProblems />} />
       <Route path="problems/:id" element={<ProblemSolve />} />
       <Route path="submissions" element={<Submissions />} />
+      <Route path="submissions/:id" element={<SubmissionDetail />} />
+      <Route path="admin/problems/:problemId/testcases" element={<AdminTestcases />} />
       {/* Add more routes as needed */}
       </Route>
     </Routes>

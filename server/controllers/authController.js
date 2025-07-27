@@ -93,7 +93,7 @@ exports.getUsers = async (req, res) => {
 exports.getProfile = (req, res) => {
   try {
     const { id, name, email, role } = req.user;
-    res.status(200).json({ id, name, email, role });
+    res.status(200).json({ _id: id, name, email, role });
   } catch (error) {
     console.error("Error fetching profile:", error);
     res.status(500).json({ message: "Server error fetching profile" });

@@ -43,10 +43,11 @@ const AdminUsers = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await api.get(`/api/submissions/user/${user._id}`, {
+      // Use admin API endpoint to get all submissions for this user
+      const res = await api.get(`/api/submissions/admin/all?userId=${user._id}&limit=100`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setSubmissions(res.data);
+      setSubmissions(res.data.submissions);
     } catch (err) {
       console.error("Error fetching submissions:", err);
     } finally {
@@ -121,7 +122,7 @@ const AdminUsers = () => {
                     {submissions.length > 0 ? (
                       submissions.map((sub) => (
                         <li key={sub._id} className="bg-indigo-50 p-2 rounded text-xs">
-                          <p><strong>Problem:</strong> {sub.problemId}</p>
+                          <p><strong>Problem:</strong> {sub.problemId?.title || sub.problemId}</p>
                           <p><strong>Language:</strong> {sub.language}</p>
                           <p><strong>Verdict:</strong> {sub.verdict || "-"}</p>
                           <p><strong>Time:</strong> {sub.submissionTime ? new Date(sub.submissionTime).toLocaleString() : "-"}</p>

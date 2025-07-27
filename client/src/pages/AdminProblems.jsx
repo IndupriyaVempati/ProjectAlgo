@@ -131,6 +131,12 @@ const AdminProblems = () => {
                 Edit
               </button>
               <button
+                onClick={() => navigate(`/admin/problems/${p._id}/testcases`)}
+                className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded font-semibold"
+              >
+                Testcases
+              </button>
+              <button
                 onClick={() => handleDelete(p._id)}
                 className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded font-semibold"
               >

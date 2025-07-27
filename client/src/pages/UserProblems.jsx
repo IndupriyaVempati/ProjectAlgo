@@ -25,10 +25,21 @@ const UserProblems = () => {
     };
 
     const fetchSolved = async () => {
-      const res = await api.get(`/api/submissions/user/${userId}/solved`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setSolvedProblems(res.data);
+      try {
+        const res = await api.get(`/api/submissions/user/${userId}/solved`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        console.log('Solved problems API response:', res.data);
+        
+        // Extract problem IDs from the solved problems data
+        const solvedProblemIds = res.data.data ? res.data.data.map(problem => problem.problemId) : [];
+        console.log('Extracted solved problem IDs:', solvedProblemIds);
+        setSolvedProblems(solvedProblemIds);
+      } catch (error) {
+        console.error('Error fetching solved problems:', error);
+        console.error('Error response:', error.response?.data);
+        setSolvedProblems([]);
+      }
     };
 
     fetchProblems();

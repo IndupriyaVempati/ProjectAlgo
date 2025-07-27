@@ -11,7 +11,6 @@
   "description": "",
   "dependencies": {
     "bcryptjs": "^3.0.2",
-    "cor": "^0.0.0",
     "cors": "^2.8.5",
     "dotenv": "^17.0.1",
     "express": "^5.1.0",

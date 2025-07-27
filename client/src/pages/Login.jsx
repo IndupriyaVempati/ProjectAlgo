@@ -26,6 +26,7 @@ const Login = () => {
       localStorage.setItem("role", res.data.user.role);
       localStorage.setItem("name", res.data.user.name);
       localStorage.setItem("email", res.data.user.email);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
       console.log("Login successful:", res.data);
       alert("Login successful!");
       navigate(res.data.user.role === "admin" ? "/admin-welcome" : "/user-welcome");

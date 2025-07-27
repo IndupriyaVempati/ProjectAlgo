@@ -48,9 +48,10 @@ useEffect(() => {
     if (role === "admin") {
       return (
         <>
+          <NavLink to="/admin-dashboard" className={linkClass}>Dashboard</NavLink>
           <NavLink to="/api/problems" className={linkClass}>Problems</NavLink>
-                <NavLink to="/admin/users" className={linkClass}>Users</NavLink>
-                <NavLink to="/profile" className={linkClass}>Profile</NavLink>
+          <NavLink to="/admin/users" className={linkClass}>Users</NavLink>
+          <NavLink to="/profile" className={linkClass}>Profile</NavLink>
           <button onClick={handleLogout} className="text-red-500 hover:underline text-sm font-medium">
             Logout 
           </button>
